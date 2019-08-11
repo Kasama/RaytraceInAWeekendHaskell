@@ -2,6 +2,7 @@ module Draw where
 
 import Ray
 import Vec3
+import Shape
 import Data.Vec3
 
 type Color = (Integer, Integer, Integer)
@@ -39,7 +40,9 @@ toUV nPixelsHorizontal nPixelsVertical (x, y) = (u, v)
     v = fromInteger y / fromInteger nPixelsVertical
 
 getSceneColor' :: UV -> Color01
-getSceneColor' (u, v) = getBackgroundColor ray
+getSceneColor' (u, v) = if hit sphere ray
+  then (0, 0, 1)
+  else getBackgroundColor ray
   where
     ray = VisionRay {
       rayOrigin = fromXYZ (0, 0, 0),
@@ -49,6 +52,10 @@ getSceneColor' (u, v) = getBackgroundColor ray
     lowerLeftCorner = fromXYZ (-2, -1, -1)
     horizontal = fromXYZ (4, 0, 0)
     vertical = fromXYZ (0, 2, 0)
+    sphere = Sphere {
+      center = fromXYZ (0, 0, -1),
+      radius = 0.5
+    }
 
 getSceneColor :: Integer -> Integer -> (Integer, Integer) -> Color
 getSceneColor nx ny xy = normalizeColor $ getSceneColor' uv
