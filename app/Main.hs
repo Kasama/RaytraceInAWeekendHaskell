@@ -5,17 +5,16 @@ import Draw ( getSceneColor
             , printPixelColor
             )
 
-nPixelsHorizontal = 200 :: Double
-nPixelsVertical = 100 :: Double
+nPixelsHorizontal = 200 :: Integer
+nPixelsVertical = 100 :: Integer
 
-maxPixelColor = 255.99 :: Double
-
+screenPixels :: [(Integer, Integer)]
 screenPixels = [ (x, y)
                | y <- [nPixelsVertical-1,nPixelsVertical-2..0]
                , x <- [0..nPixelsHorizontal-1]
                ]
 
-getSceneColor' = getSceneColor nPixelsHorizontal nPixelsVertical maxPixelColor
+getSceneColor' = getSceneColor nPixelsHorizontal nPixelsVertical
 printPPMHeader' = printPPMHeader nPixelsHorizontal nPixelsVertical
 
 main :: IO ()
