@@ -6,7 +6,7 @@ import Draw ( getSceneColor
             )
 
 nPixelsHorizontal = 200 :: Integer
-nPixelsVertical = 100 :: Integer
+nPixelsVertical   = 100 :: Integer
 
 screenPixels :: [(Integer, Integer)]
 screenPixels = [ (x, y)
