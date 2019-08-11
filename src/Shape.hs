@@ -10,7 +10,9 @@ data Sphere = Sphere { center :: CVec3
                      } deriving (Show)
 
 instance Hittable Sphere where
-  hit sphere ray = delta >= 0
+  hit sphere ray = if delta < 0
+    then -1
+    else ( -b - sqrt delta ) / (2 * a)
     where
       delta = b * b - 4 * a * c
       a = direction ray .* direction ray
@@ -19,4 +21,4 @@ instance Hittable Sphere where
       oc = origin ray <-> center sphere
 
 class Hittable a where
-  hit :: Ray r => a -> r -> Bool
+  hit :: a -> Ray -> Double
