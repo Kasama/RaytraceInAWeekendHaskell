@@ -5,6 +5,9 @@ import Vec3
 import Shape
 import Data.Vec3 hiding (origin)
 
+inf :: Double
+inf = read "Infinity"
+
 type Color = (Integer, Integer, Integer)
 type Color01 = (Double, Double, Double)
 type UV = (Double, Double)
@@ -38,9 +41,9 @@ toUV nPixelsHorizontal nPixelsVertical (x, y) = (u, v)
         v = fromInteger y / fromInteger nPixelsVertical
 
 getSceneColor' :: UV -> Color01
-getSceneColor' (u, v) = if t >= 0
-  then normalColor
-  else getBackgroundColor ray
+getSceneColor' (u, v)
+  | didHit hitRecord = normalColor
+  | otherwise        = getBackgroundColor ray
   where
     ray = Ray {
       origin = fromXYZ (0, 0, 0),
@@ -53,10 +56,8 @@ getSceneColor' (u, v) = if t >= 0
     lowerLeftCorner = fromXYZ (-2, -1, -1)
     horizontal = fromXYZ (4, 0, 0)
     vertical = fromXYZ (0, 2, 0)
-    t = hit sphere ray
-    normal = normalize $ hitPoint <-> center sphere
-    hitPoint = pointAt ray t
-    normalColor = toXYZ $ vmap (1 +) normal .^ 0.5
+    hitRecord = hit sphere ray 0 inf
+    normalColor = toXYZ $ vmap (1 +) (normal hitRecord) .^ 0.5
 
 getSceneColor :: Integer -> Integer -> (Integer, Integer) -> Color
 getSceneColor nx ny xy = normalizeColor $ getSceneColor' uv
