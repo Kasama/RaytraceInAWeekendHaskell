@@ -15,6 +15,12 @@ data HitRecord = HitRecord { t :: Double
                            , didHit :: Bool
                            }
 
+instance Eq HitRecord where
+  (HitRecord t1 _ _ _) == (HitRecord t2 _ _ _) = t1 == t2
+
+instance Ord HitRecord where
+  (HitRecord t1 _ _ _) `compare` (HitRecord t2 _ _ _) = t1 `compare` t2
+
 originVec :: CVec3
 originVec = fromXYZ (0, 0, 0)
 

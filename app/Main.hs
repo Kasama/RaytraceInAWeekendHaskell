@@ -15,6 +15,7 @@ screenPixels = [ (x, y)
                ]
 
 shapes = [ Sphere { center = fromXYZ (0, 0, -1), radius = 0.5 }
+         , Sphere { center = fromXYZ (0, -100.5, -1), radius = 100 }
          ]
 
 scene = Scene { aspectRatioH = 2

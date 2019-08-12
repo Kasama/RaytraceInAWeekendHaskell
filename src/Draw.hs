@@ -4,6 +4,7 @@ import Ray
 import Vec3
 import Shape
 import Scene
+import Data.List (minimumBy)
 import Data.Vec3 hiding (origin)
 
 inf :: Double
@@ -37,16 +38,17 @@ getBackgroundColor = getBackgroundColor' (0.6, 0.1, 0.5) (1, 1, 1)
 
 getSceneColor' :: Scene -> UV -> Color01
 getSceneColor' s (u, v)
-  | didHit hitRecord = normalColor
+  | anyHits          = normalColor
   | otherwise        = getBackgroundColor ray
   where
     ray = Ray {
       origin = originVec,
       direction = lowerLeftCorner s <+> (horizontal s .^ u) <+> (vertical s .^ v)
     }
-    sphere = head $ objects s
-    hitRecord = hit sphere ray 0 inf
-    normalColor = toXYZ $ vmap (1 +) (normal hitRecord) .^ 0.5
+    hitRecords = filter didHit $ map (\o -> hit o ray 0 inf) $ objects s
+    anyHits = any didHit hitRecords
+    closestRecord = minimum hitRecords
+    normalColor = toXYZ $ vmap (1 +) (normal closestRecord) .^ 0.5
 
 getSceneColor :: Scene -> (Integer, Integer) -> Color
 getSceneColor scene xy = normalizeColor $ getSceneColor' scene uv
