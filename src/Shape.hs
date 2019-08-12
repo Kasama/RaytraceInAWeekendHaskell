@@ -20,12 +20,12 @@ originVec = fromXYZ (0, 0, 0)
 
 instance Hittable Sphere where
   hit sphere ray tMin tMax
-    | delta < 0 =
-      HitRecord (-1) originVec originVec False
-    | negativeT < tMax && negativeT > tMin =
+    | delta > 0 && negativeT < tMax && negativeT > tMin =
       HitRecord negativeT (normal $ hitPointFor negativeT) (hitPointFor negativeT) True
-    | positiveT < tMax && positiveT > tMin =
+    | delta > 0 && positiveT < tMax && positiveT > tMin =
       HitRecord positiveT (normal $ hitPointFor positiveT) (hitPointFor positiveT) True
+    | otherwise =
+      HitRecord (-1) originVec originVec False
     where
       delta = b * b - 4 * a * c
       a = direction ray .* direction ray
