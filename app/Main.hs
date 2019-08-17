@@ -1,35 +1,43 @@
 module Main where
 
+import Scene
+import Shape
+import Data.Vec3
+import Data.Time.Clock.POSIX
+import System.Random
 import Draw ( getSceneColor
             , printPPMHeader
             , printPixelColor
             )
-import Scene
-import Shape
-import Data.Vec3
 
-screenPixels :: [(Integer, Integer)]
-screenPixels = [ (x, y)
-               | y <- [ny-1,ny-2..0]
-               , x <- [0..nx-1]
-               ]
+rnd :: [Double]
+rnd = randoms $ mkStdGen 0
+
+screenPixels :: Integer -> Integer -> [(Integer, Integer)]
+screenPixels nx ny = [ (x, y)
+                     | y <- [ny-1,ny-2..0]
+                     , x <- [0..nx-1]
+                     ]
 
 shapes = [ Sphere { center = fromXYZ (0, 0, -1), radius = 0.5 }
          , Sphere { center = fromXYZ (0, -100.5, -1), radius = 100 }
          ]
 
-scene = Scene { aspectRatioH = 2
-              , aspectRatioV = 1
-              , scale        = 100
-              , objects      = shapes
-              }
-
-nx = nPixelsHorizontal scene
-ny = nPixelsVertical scene
-
-getSceneColor' = getSceneColor scene
-printPPMHeader' = printPPMHeader scene
+scene :: Int -> Scene
+scene seed = Scene { aspectRatioH = 2
+                   , aspectRatioV = 1
+                   , scale        = 100
+                   , antialiasing = 100
+                   , objects      = shapes
+                   , rng          = randoms $ mkStdGen seed
+                   }
 
 main :: IO ()
-main = do printPPMHeader';
-          mapM_ (printPixelColor . getSceneColor') screenPixels
+main = do
+          let s = scene 0
+          let nx = nPixelsHorizontal s
+          let ny = nPixelsVertical s
+          let getSceneColor' = getSceneColor s
+          let printPPMHeader' = printPPMHeader s
+          printPPMHeader';
+          mapM_ (printPixelColor . getSceneColor') $ screenPixels nx ny

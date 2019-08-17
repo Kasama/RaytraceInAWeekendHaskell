@@ -5,13 +5,16 @@ import Vec3
 import Shape
 import Scene
 import Data.List (minimumBy)
-import Data.Vec3 hiding (origin)
+import Data.Vec3 hiding (origin, zipWith)
 
 inf :: Double
 inf = read "Infinity"
 
 type Color = (Integer, Integer, Integer)
 type Color01 = (Double, Double, Double)
+
+add :: Color01 -> Color01 -> Color01
+(r1, g1, b1) `add` (r2, g2, b2) = (r1 + r2, g1 + g2, b1 + b2)
 
 maxPixelColor = 255.99 :: Double
 
@@ -38,8 +41,8 @@ getBackgroundColor = getBackgroundColor' (0.6, 0.1, 0.5) (1, 1, 1)
 
 getSceneColor' :: Scene -> UV -> Color01
 getSceneColor' s (u, v)
-  | anyHits          = normalColor
-  | otherwise        = getBackgroundColor ray
+  | anyHits   = normalColor
+  | otherwise = getBackgroundColor ray
   where
     ray = Ray {
       origin = originVec,
@@ -51,8 +54,13 @@ getSceneColor' s (u, v)
     normalColor = toXYZ $ vmap (1 +) (normal closestRecord) .^ 0.5
 
 getSceneColor :: Scene -> (Integer, Integer) -> Color
-getSceneColor scene xy = normalizeColor $ getSceneColor' scene uv
-  where uv = toUV scene xy
+getSceneColor scene (x, y) = normalizeColor $ toXYZ aggregated .^ (1.0 / fromInteger (antialiasing scene))
+  where
+    aggregated = foldr ((<+>) . fromXYZ) originVec samplesColor
+    -- nao é pra ter zip nenhum, faz um map de rng take antialiasing que vai dar tudo certo
+    -- ou melhor, faz zip de 2 rng pra pegar um pra cada coord, gg wp
+    samplesColor = zipWith (\a b -> getSceneColor' scene (uv a b)) [1..(antialiasing scene)] (rng scene)
+    uv a b = toUV scene (a, b)
 
 -- PPM stuff
 printPixelColor :: Color -> IO ()
@@ -62,4 +70,4 @@ printPPMHeader :: Scene -> IO ()
 printPPMHeader scene =
   do putStrLn "P3";
      putStrLn $ show (nPixelsHorizontal scene) ++ " " ++ show (nPixelsVertical scene);
-     putStrLn "255"
+     print $ floor maxPixelColor
