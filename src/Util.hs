@@ -6,4 +6,5 @@ evens _      = []
 odds (_:xs) = evens xs
 odds _      = []
 
+cantor :: Integer -> Integer -> Integer
 cantor a b = ((a + b) * (a + b + 1) `div` 2) + b

@@ -10,7 +10,10 @@ import Data.Vec3 hiding (origin, zipWith)
 inf :: Double
 inf = read "Infinity"
 
+-- Color from 0 to 255
 type Color = (Integer, Integer, Integer)
+
+-- Color from 0 to 1
 type Color01 = (Double, Double, Double)
 
 add :: Color01 -> Color01 -> Color01
@@ -31,13 +34,13 @@ normalizePixelColor maxPixelColor pixel = floor $ maxPixelColor * pixel
 normalizeBetween0and1 :: Double -> Double
 normalizeBetween0and1 n = 0.5 * (n + 1)
 
-getBackgroundColor' :: Color01 -> Color01 -> Ray -> Color01
-getBackgroundColor' highColor lowColor ray = lerp lowColor highColor t
+getGradientBackgroundColor :: Color01 -> Color01 -> Ray -> Color01
+getGradientBackgroundColor highColor lowColor ray = lerp lowColor highColor t
   where t = normalizeBetween0and1 yComponent
         (CVec3 _ yComponent _) = normalize $ direction ray
 
 getBackgroundColor :: Ray -> Color01
-getBackgroundColor = getBackgroundColor' (0.6, 0.1, 0.5) (1, 1, 1)
+getBackgroundColor = getGradientBackgroundColor (0.6, 0.1, 0.5) (1, 1, 1)
 
 getSceneColor' :: Scene -> UV -> Color01
 getSceneColor' s (u, v)
@@ -54,13 +57,7 @@ getSceneColor' s (u, v)
     normalColor = toXYZ $ vmap (1 +) (normal closestRecord) .^ 0.5
 
 getSceneColor :: Scene -> (Integer, Integer) -> Color
-getSceneColor scene (x, y) = normalizeColor $ toXYZ aggregated .^ (1.0 / fromInteger (antialiasing scene))
-  where
-    aggregated = foldr ((<+>) . fromXYZ) originVec samplesColor
-    -- nao é pra ter zip nenhum, faz um map de rng take antialiasing que vai dar tudo certo
-    -- ou melhor, faz zip de 2 rng pra pegar um pra cada coord, gg wp
-    samplesColor = zipWith (\a b -> getSceneColor' scene (uv a b)) [1..(antialiasing scene)] (rng scene)
-    uv a b = toUV scene (a, b)
+getSceneColor scene (x, y) = normalizeColor $ getSceneColor' scene (toUV scene (fromInteger x, fromInteger y))
 
 -- PPM stuff
 printPixelColor :: Color -> IO ()
