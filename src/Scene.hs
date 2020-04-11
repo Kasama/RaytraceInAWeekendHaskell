@@ -2,6 +2,7 @@ module Scene where
 
 import Data.Vec3
 import Shape
+import System.Random
 
 type UV = (Double, Double)
 
@@ -10,8 +11,17 @@ data Scene = Scene { aspectRatioH :: Integer
                    , scale :: Integer
                    , antialiasing :: Integer
                    , objects :: [Sphere]
-                   , rng :: [Double]
+                   , rng :: StdGen
                    }
+
+setRng :: Scene -> Int -> Scene
+setRng s rngSeed = Scene
+                     (aspectRatioH s)
+                     (aspectRatioV s)
+                     (scale s)
+                     (antialiasing s)
+                     (objects s)
+                     (mkStdGen rngSeed)
 
 nPixelsHorizontal scene = scale scene * aspectRatioH scene
 nPixelsVertical   scene = scale scene * aspectRatioV scene

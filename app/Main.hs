@@ -23,21 +23,25 @@ shapes = [ Sphere { center = fromXYZ (0, 0, -1), radius = 0.5 }
          , Sphere { center = fromXYZ (0, -100.5, -1), radius = 100 }
          ]
 
-scene :: Int -> Scene
-scene seed = Scene { aspectRatioH = 2
-                   , aspectRatioV = 1
-                   , scale        = 200
-                   , antialiasing = 100
-                   , objects      = shapes
-                   , rng          = randoms $ mkStdGen seed
-                   }
+scene :: Scene
+scene = Scene { aspectRatioH = 2
+              , aspectRatioV = 1
+              , scale        = 200
+              , antialiasing = 4
+              , objects      = shapes
+              , rng          = mkStdGen 0
+              }
+
+renderPixel :: Scene -> (Integer, Integer) -> IO ()
+renderPixel scene = printPixelColor . getSceneColor scene
 
 main :: IO ()
 main = do
           let rngSeed = 0
-          let s = scene rngSeed
+          let s = scene
           let nx = nPixelsHorizontal s
           let ny = nPixelsVertical s
           let getSceneColor' = getSceneColor s
+          let scenes = map (setRng s) (randoms $ mkStdGen rngSeed)
           printPPMHeader s;
-          mapM_ (printPixelColor . getSceneColor') $ screenPixels nx ny
+          mapM_ (uncurry renderPixel) $ zip scenes (screenPixels nx ny)

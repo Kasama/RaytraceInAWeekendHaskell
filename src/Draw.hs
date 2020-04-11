@@ -4,6 +4,7 @@ import Ray
 import Vec3
 import Shape
 import Scene
+import System.Random
 import Data.List (minimumBy)
 import Data.Vec3 hiding (origin, zipWith)
 
@@ -34,13 +35,13 @@ normalizePixelColor maxPixelColor pixel = floor $ maxPixelColor * pixel
 normalizeBetween0and1 :: Double -> Double
 normalizeBetween0and1 n = 0.5 * (n + 1)
 
-getGradientBackgroundColor :: Color01 -> Color01 -> Ray -> Color01
-getGradientBackgroundColor highColor lowColor ray = lerp lowColor highColor t
+getCircularGradientBackgroundColor :: Color01 -> Color01 -> Ray -> Color01
+getCircularGradientBackgroundColor highColor lowColor ray = lerp lowColor highColor t
   where t = normalizeBetween0and1 yComponent
         (CVec3 _ yComponent _) = normalize $ direction ray
 
 getBackgroundColor :: Ray -> Color01
-getBackgroundColor = getGradientBackgroundColor (0.6, 0.1, 0.5) (1, 1, 1)
+getBackgroundColor = getCircularGradientBackgroundColor (0.6, 0.1, 0.5) (1, 1, 1)
 
 getSceneColor' :: Scene -> UV -> Color01
 getSceneColor' s (u, v)
@@ -56,8 +57,15 @@ getSceneColor' s (u, v)
     closestRecord = minimum hitRecords
     normalColor = toXYZ $ vmap (1 +) (normal closestRecord) .^ 0.5
 
-getSceneColor :: Scene -> (Integer, Integer) -> Color
-getSceneColor scene (x, y) = normalizeColor $ getSceneColor' scene (toUV scene (fromInteger x, fromInteger y))
+getSceneColor scene (x, y) = normalizeColor $ toXYZ averageColor
+  where
+    nSamples = fromInteger $ antialiasing scene
+    (genX, genY) = split (rng scene)
+    uv a b = toUV scene (a, b)
+    color sampleA sampleB = getSceneColor' scene (uv (fromInteger x + sampleA) (fromInteger y + sampleB))
+    colorSamples = take nSamples $ zipWith color (randoms genX) (randoms genY)
+    aggregated = foldr ((<+>) . fromXYZ) originVec colorSamples
+    averageColor = aggregated .^ (1.0 / fromIntegral nSamples)
 
 -- PPM stuff
 printPixelColor :: Color -> IO ()
