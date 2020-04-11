@@ -3,7 +3,8 @@ module Main where
 import Scene
 import Shape
 import Camera
-import Data.Vec3
+import Control.Parallel.Strategies
+import Data.Vec3 hiding (zipWith)
 import Data.Time.Clock.POSIX
 import System.Random
 import Draw ( getSceneColor
@@ -25,19 +26,16 @@ shapes = [ Sphere { center = fromXYZ (0, 0, -1), radius = 0.5 }
          ]
 
 cam :: Camera
-cam = getCamera (fromXYZ (5, 0, 10))
+cam = getCamera (fromXYZ (0, 0, 0))
                 (2, 1) -- Aspect Ratio 2x1
-                200
+                200    -- Scale
 
 scene :: Scene
-scene = Scene { antialiasing = 4
+scene = Scene { antialiasing = 10
               , objects      = shapes
               , camera       = cam
               , rng          = mkStdGen 0
               }
-
-renderPixel :: Scene -> (Integer, Integer) -> IO ()
-renderPixel scene = printPixelColor . getSceneColor scene
 
 main :: IO ()
 main = do
@@ -45,7 +43,9 @@ main = do
           let s = scene
           let nx = nPixelsHorizontal (camera s)
           let ny = nPixelsVertical (camera s)
-          let getSceneColor' = getSceneColor s
           let scenes = map (setRng s) (randoms $ mkStdGen rngSeed)
+          let pixelColors = zipWith getSceneColor scenes (screenPixels nx ny)
+          let parallelPixelColors = pixelColors `using` parListChunk 16 rdeepseq
           printPPMHeader s;
-          mapM_ (uncurry renderPixel) $ zip scenes (screenPixels nx ny)
+          mapM_ printPixelColor parallelPixelColors
+          -- mapM_ printPixelColor pixelColors
