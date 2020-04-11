@@ -2,6 +2,7 @@ module Main where
 
 import Scene
 import Shape
+import Camera
 import Data.Vec3
 import Data.Time.Clock.POSIX
 import System.Random
@@ -23,12 +24,15 @@ shapes = [ Sphere { center = fromXYZ (0, 0, -1), radius = 0.5 }
          , Sphere { center = fromXYZ (0, -100.5, -1), radius = 100 }
          ]
 
+cam :: Camera
+cam = getCamera (fromXYZ (5, 0, 10))
+                (2, 1) -- Aspect Ratio 2x1
+                200
+
 scene :: Scene
-scene = Scene { aspectRatioH = 2
-              , aspectRatioV = 1
-              , scale        = 200
-              , antialiasing = 4
+scene = Scene { antialiasing = 4
               , objects      = shapes
+              , camera       = cam
               , rng          = mkStdGen 0
               }
 
@@ -39,8 +43,8 @@ main :: IO ()
 main = do
           let rngSeed = 0
           let s = scene
-          let nx = nPixelsHorizontal s
-          let ny = nPixelsVertical s
+          let nx = nPixelsHorizontal (camera s)
+          let ny = nPixelsVertical (camera s)
           let getSceneColor' = getSceneColor s
           let scenes = map (setRng s) (randoms $ mkStdGen rngSeed)
           printPPMHeader s;

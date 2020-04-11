@@ -4,6 +4,7 @@ import Ray
 import Vec3
 import Shape
 import Scene
+import Camera
 import System.Random
 import Data.List (minimumBy)
 import Data.Vec3 hiding (origin, zipWith)
@@ -49,19 +50,20 @@ getSceneColor' s (u, v)
   | otherwise = getBackgroundColor ray
   where
     ray = Ray {
-      origin = originVec,
-      direction = lowerLeftCorner s <+> (horizontal s .^ u) <+> (vertical s .^ v)
+      origin = position $ camera s,
+      direction = getRay (camera s) (u, v)
     }
     hitRecords = filter didHit $ map (\o -> hit o ray 0 inf) $ objects s
     anyHits = any didHit hitRecords
     closestRecord = minimum hitRecords
     normalColor = toXYZ $ vmap (1 +) (normal closestRecord) .^ 0.5
 
+getSceneColor :: Scene -> (Integer, Integer) -> Color
 getSceneColor scene (x, y) = normalizeColor $ toXYZ averageColor
   where
     nSamples = fromInteger $ antialiasing scene
     (genX, genY) = split (rng scene)
-    uv a b = toUV scene (a, b)
+    uv a b = toUV (camera scene) (a, b)
     color sampleA sampleB = getSceneColor' scene (uv (fromInteger x + sampleA) (fromInteger y + sampleB))
     colorSamples = take nSamples $ zipWith color (randoms genX) (randoms genY)
     aggregated = foldr ((<+>) . fromXYZ) originVec colorSamples
@@ -74,5 +76,5 @@ printPixelColor (r, g, b) = putStrLn $ show r ++ " " ++ show g ++ " " ++ show b
 printPPMHeader :: Scene -> IO ()
 printPPMHeader scene =
   do putStrLn "P3";
-     putStrLn $ show (nPixelsHorizontal scene) ++ " " ++ show (nPixelsVertical scene);
+     putStrLn $ show (nPixelsHorizontal (camera scene)) ++ " " ++ show (nPixelsVertical (camera scene));
      print $ floor maxPixelColor
