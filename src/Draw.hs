@@ -45,15 +45,15 @@ getBackgroundColor :: Ray -> Color01
 getBackgroundColor = getCircularGradientBackgroundColor (0.6, 0.1, 0.5) (1, 1, 1)
 
 getSceneColor' :: Scene -> UV -> Color01
-getSceneColor' s (u, v)
+getSceneColor' scene (u, v)
   | anyHits   = normalColor
   | otherwise = getBackgroundColor ray
   where
     ray = Ray {
-      origin = position $ camera s,
-      direction = getRay (camera s) (u, v)
+      origin = position $ camera scene,
+      direction = getRay (camera scene) (u, v)
     }
-    hitRecords = filter didHit $ map (\o -> hit o ray 0 inf) $ objects s
+    hitRecords = filter didHit $ map (\o -> hit o ray 0 inf) $ objects scene
     anyHits = any didHit hitRecords
     closestRecord = minimum hitRecords
     normalColor = toXYZ $ vmap (1 +) (normal closestRecord) .^ 0.5
