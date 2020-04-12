@@ -6,6 +6,8 @@ import Shape
 import Scene
 import Camera
 import System.Random
+import Debug.Trace
+import Text.Printf
 import Data.List (minimumBy)
 import Data.Vec3 hiding (origin, zipWith)
 
@@ -31,7 +33,7 @@ normalizeColor (r, g, b) = (r', g', b')
         normalizePixelColor' = normalizePixelColor maxPixelColor
 
 normalizePixelColor :: Double -> Double -> Integer
-normalizePixelColor maxPixelColor pixel = floor $ maxPixelColor * pixel
+normalizePixelColor maxPixelColor pixel = floor (maxPixelColor * pixel)
 
 normalizeBetween0and1 :: Double -> Double
 normalizeBetween0and1 n = 0.5 * (n + 1)
@@ -41,22 +43,45 @@ getCircularGradientBackgroundColor highColor lowColor ray = lerp lowColor highCo
   where t = normalizeBetween0and1 yComponent
         (CVec3 _ yComponent _) = normalize $ direction ray
 
-getBackgroundColor :: Ray -> Color01
-getBackgroundColor = getCircularGradientBackgroundColor (0.6, 0.1, 0.5) (1, 1, 1)
+getBlueGradientBackground :: Ray -> Color01
+getBlueGradientBackground ray = ((1.0, 1.0, 1.0) .^ (1.0 - t)) <+> ((0.5, 0.7, 1.0) .^ t)
+  where
+    (_, y, _) = toXYZ $ direction ray
+    t = (y + 1.0) * 0.5
 
-getSceneColor' :: Scene -> UV -> Color01
-getSceneColor' scene (u, v)
-  | anyHits   = normalColor
-  | otherwise = getBackgroundColor ray
+getWhiteBackground = (1, 1, 1)
+getGreenBackground = (0, 1, 0)
+getPinkBackgroundColor = getCircularGradientBackgroundColor (0.6, 0.1, 0.5) (1, 1, 1)
+
+getBackgroundColor :: Ray -> Color01
+getBackgroundColor = getBlueGradientBackground
+
+getColorForRay :: Scene -> Ray -> Integer -> StdGen -> (Color01, StdGen)
+getColorForRay scene ray tries rng
+  | tries > 50 = ((1, 0, 0), rng)
+  | anyHits    = (nextColor .^ 0.5, nrng)
+  | otherwise  = (getBackgroundColor ray, rng)
+  where
+    (nextColor, nrng) = getColorForRay scene nextRay (tries + 1) nextRng
+    hitRecords = filter didHit $ map (\o -> hit o ray 0.0001 inf) $ objects scene
+    anyHits = any didHit hitRecords
+    closestRecord = minimum hitRecords
+    (x, y, z) = toXYZ randomPoint
+    (xi, yi, zi) = toXYZ $ interception closestRecord
+    (randomPoint, nextRng) = randomPointInSphere rng
+    nextRayTarget = interception closestRecord <+> normal closestRecord <+> randomPoint
+    nextRay = Ray {
+      origin = interception closestRecord,
+      direction = nextRayTarget <-> interception closestRecord
+    }
+
+getSceneColor' :: Scene -> UV -> StdGen -> (Color01, StdGen)
+getSceneColor' scene (u, v) = getColorForRay scene ray 0
   where
     ray = Ray {
       origin = position $ camera scene,
       direction = getRay (camera scene) (u, v)
     }
-    hitRecords = filter didHit $ map (\o -> hit o ray 0 inf) $ objects scene
-    anyHits = any didHit hitRecords
-    closestRecord = minimum hitRecords
-    normalColor = toXYZ $ vmap (1 +) (normal closestRecord) .^ 0.5
 
 getSceneColor :: Scene -> (Integer, Integer) -> Color
 getSceneColor scene (x, y) = normalizeColor $ toXYZ averageColor
@@ -65,9 +90,10 @@ getSceneColor scene (x, y) = normalizeColor $ toXYZ averageColor
     (genX, genY) = split (rng scene)
     uv a b = toUV (camera scene) (a, b)
     color sampleA sampleB = getSceneColor' scene (uv (fromInteger x + sampleA) (fromInteger y + sampleB))
-    colorSamples = take nSamples $ zipWith color (randoms genX) (randoms genY)
+    (colorSamples, _) = unzip $ take nSamples $ zipWith3 color (randoms genX) (randoms genY) (map mkStdGen (randoms (rng scene)))
     aggregated = foldr ((<+>) . fromXYZ) originVec colorSamples
     averageColor = aggregated .^ (1.0 / fromIntegral nSamples)
+    (r, g, b) = toXYZ averageColor
 
 -- PPM stuff
 printPixelColor :: Color -> IO ()

@@ -31,7 +31,7 @@ cam = getCamera (fromXYZ (0, 0, 0))
                 200    -- Scale
 
 scene :: Scene
-scene = Scene { antialiasing = 10
+scene = Scene { antialiasing = 50
               , objects      = shapes
               , camera       = cam
               , rng          = mkStdGen 0
@@ -48,4 +48,3 @@ main = do
           let parallelPixelColors = pixelColors `using` parListChunk 16 rdeepseq
           printPPMHeader s;
           mapM_ printPixelColor parallelPixelColors
-          -- mapM_ printPixelColor pixelColors
