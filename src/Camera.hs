@@ -36,3 +36,6 @@ toUV              camera (x, y) = (u, v) :: UV
 
 getRay :: Camera -> UV -> CVec3
 getRay cam (u, v)= lowerLeftCorner cam <+> (horizontal cam .^ u) <+> (vertical cam .^ v)
+
+reflect :: CVec3 -> CVec3 -> CVec3
+reflect view normal = view <-> (normal .^ (2 * (normal .* view)))

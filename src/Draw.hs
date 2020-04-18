@@ -58,7 +58,7 @@ getBackgroundColor = getBlueGradientBackground
 
 getColorForRay :: Scene -> Ray -> Integer -> StdGen -> (Color01, StdGen)
 getColorForRay scene ray tries rng
-  | tries > 50 = ((1, 0, 0), rng)
+  | tries > 50 = ((0, 0, 0), rng)
   | anyHits    = (nextColor .^ 0.5, nrng)
   | otherwise  = (getBackgroundColor ray, rng)
   where
@@ -72,7 +72,8 @@ getColorForRay scene ray tries rng
     nextRayTarget = interception closestRecord <+> normal closestRecord <+> randomPoint
     nextRay = Ray {
       origin = interception closestRecord,
-      direction = nextRayTarget <-> interception closestRecord
+      direction = nextRayTarget <-> interception closestRecord -- random reflection (Rough surface)
+      -- direction = reflect (direction ray) (normal closestRecord) -- perfect reflection (perfect mirror)
     }
 
 getSceneColor' :: Scene -> UV -> StdGen -> (Color01, StdGen)
