@@ -12,9 +12,18 @@ vmap f v = fromXYZ (f x, f y, f z)
 
 randomPointInSphere :: StdGen -> (CVec3, StdGen)
 randomPointInSphere gen
-  | x*x + y*y + z*z < 1.0 = (fromXYZ (x, y, z), nextGen)
+  | norm vec < 1.0 = (vec, nextGen)
   | otherwise = randomPointInSphere nextGen
   where
+    vec = fromXYZ (x, y, z)
     (x, genY) = randomR (-1, 1) gen
     (y, genZ) = randomR (-1, 1) genY
     (z, nextGen) = randomR (-1, 1) genZ
+
+reflect :: CVec3 -> CVec3 -> CVec3
+reflect view normal = view <-> (n .^ (2 * (n .* view)))
+  where
+    n = normalize normal
+
+vMult :: CVec3 -> CVec3 -> CVec3
+vMult = Data.Vec3.zipWith (*)

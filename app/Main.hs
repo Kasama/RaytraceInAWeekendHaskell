@@ -21,8 +21,11 @@ screenPixels nx ny = [ (x, y)
                      , x <- [0..nx-1]
                      ]
 
-shapes = [ Sphere { center = fromXYZ (0, 0, -1), radius = 0.5 }
-         , Sphere { center = fromXYZ (0, -100.5, -1), radius = 100 }
+shapes :: [Shape]
+shapes = [ Sphere { center = fromXYZ (0, 0, -1),      radius = 0.5, material = Lambertian (0.8, 0.3, 0.3) }
+         , Sphere { center = fromXYZ (0, -100.5, -1), radius = 100, material = Lambertian (0.8, 0.8, 0.0) }
+         , Sphere { center = fromXYZ (1, 0, -1),      radius = 0.5, material = Metal    1 (0.8, 0.6, 0.2) }
+         , Sphere { center = fromXYZ (-1, 0, -1),     radius = 0.5, material = Metal  0.3 (0.8, 0.8, 0.8) }
          ]
 
 cam :: Camera
