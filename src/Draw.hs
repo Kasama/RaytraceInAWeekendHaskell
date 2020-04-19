@@ -7,7 +7,6 @@ import Scene
 import Camera
 import Color
 import System.Random
-import Debug.Trace
 import Text.Printf
 import Data.List (minimumBy)
 import Data.Vec3 hiding (origin, zipWith)

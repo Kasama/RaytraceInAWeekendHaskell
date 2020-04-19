@@ -25,5 +25,13 @@ reflect view normal = view <-> (n .^ (2 * (n .* view)))
   where
     n = normalize normal
 
+refract :: CVec3 -> CVec3 -> Double -> (CVec3, Bool)
+refract view normal refractionIndex = (refracted, didRefract) -- Snell's law
+  where
+    dt = normalize view .* normal
+    discriminant = 1.0 - (refractionIndex * refractionIndex * (1.0 - (dt * dt)))
+    didRefract = discriminant > 0
+    refracted = if didRefract then ((normalize view <-> (normal .^ dt)) .^ refractionIndex) <-> (normal .^ sqrt discriminant) else fromXYZ (0,0,0)
+
 vMult :: CVec3 -> CVec3 -> CVec3
 vMult = Data.Vec3.zipWith (*)

@@ -17,25 +17,50 @@ data Shape
 data Material
   = Lambertian Color
   | Metal Double Color
+  | Dieletric Double
   deriving (Show)
+
+schlick :: Double -> Double -> Double
+schlick cosine refractionIndex = r + (1 - r) *  ((1 - cosine) ** 5)
+  where
+    r = ((1 - refractionIndex) / (1 + refractionIndex)) ** 2
 
 scatter :: Ray -> HitRecord -> StdGen -> (Ray, Color, Bool, StdGen)
 scatter ray hitRecord rng = case material $ shape hitRecord of
   Lambertian color -> (nextRay, color, True, nextRng)
     where
       nextRayTarget = interception hitRecord <+> normal hitRecord <+> randomPoint
+      (randomPoint, nextRng) = randomPointInSphere rng
       nextRay = Ray { origin = interception hitRecord
                     , direction = nextRayTarget <-> interception hitRecord
                     }
   Metal fuzzyness color -> (nextRay, color, didReflect, nextRng)
     where
       reflectedRay = reflect (direction ray) (normal hitRecord)
+      (randomPoint, nextRng) = randomPointInSphere rng
       nextRay = Ray { origin = interception hitRecord
                     , direction = reflectedRay <+> (randomPoint .^ fuzzyness)
                     }
       didReflect = direction nextRay .* normal hitRecord > 0
-  where
-    (randomPoint, nextRng) = randomPointInSphere rng
+  Dieletric materialRefractionIndex -> (nextRay, white, True, nextRng)
+    where
+      (rndSample, nextRng) = randomR (0, 1) rng
+
+      isRayFromOutside = direction ray .* normal hitRecord > 0
+      outwardNormal = if isRayFromOutside then invert $ normal hitRecord else normal hitRecord
+      refractionIndex = if isRayFromOutside then materialRefractionIndex else 1.0 / materialRefractionIndex
+      cosine = (direction ray .* normal hitRecord) / norm (direction ray) * if isRayFromOutside then materialRefractionIndex else (-1)
+
+      (refractedRay, didRefract) = refract (direction ray) outwardNormal refractionIndex
+
+      reflectionProbability = if didRefract then schlick cosine materialRefractionIndex else 1.0
+      performReflection = rndSample < reflectionProbability
+
+      reflectedRay = reflect (direction ray) (normal hitRecord)
+
+      nextRay = Ray { origin = interception hitRecord
+                    , direction = if performReflection then reflectedRay else refractedRay
+                    }
 
 data HitRecord = HitRecord { t :: Double
                            , normal :: CVec3
@@ -70,5 +95,5 @@ hit sphere@Sphere{} ray tMin tMax
       positiveT = t (+)
       negativeT = t (-)
       hitPointFor = pointAt ray
-      normal hitPoint = normalize $ hitPoint <-> center sphere
+      normal hitPoint = (hitPoint <-> center sphere) .^ (1 / radius sphere)
       oc = origin ray <-> center sphere
