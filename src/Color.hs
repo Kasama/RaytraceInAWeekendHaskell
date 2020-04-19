@@ -16,9 +16,9 @@ maxPixelColor = 255.99 :: Double
 
 normalizeColor :: Color -> ColorInteger
 normalizeColor (r, g, b) = (r', g', b')
-  where r' = normalizePixelColor' r
-        g' = normalizePixelColor' g
-        b' = normalizePixelColor' b
+  where r' = normalizePixelColor' (sqrt r)
+        g' = normalizePixelColor' (sqrt g)
+        b' = normalizePixelColor' (sqrt b)
         normalizePixelColor' = normalizePixelColor maxPixelColor
 
 normalizePixelColor :: Double -> Double -> Integer
