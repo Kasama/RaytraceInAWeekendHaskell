@@ -24,8 +24,11 @@ normalizeColor (r, g, b) = (r', g', b')
 normalizePixelColor :: Double -> Double -> Integer
 normalizePixelColor maxPixelColor pixel = floor (maxPixelColor * pixel)
 
+clamp :: (Ord a) => a -> a -> a -> a
+clamp mn mx = max mn . min mx
+
 normalizeBetween0and1 :: Double -> Double
-normalizeBetween0and1 n = 0.5 * (n + 1)
+normalizeBetween0and1 n = clamp 0 1 $ 0.5 * (n + 1)
 
 -- Default Colors
 white = (1, 1, 1) :: Color

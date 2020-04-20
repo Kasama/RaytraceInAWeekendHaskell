@@ -11,6 +11,7 @@ import Draw ( getSceneColor
             , printPPMHeader
             , printPixelColor
             )
+import Debug.Trace
 
 rnd :: [Double]
 rnd = randoms $ mkStdGen 0
@@ -24,18 +25,26 @@ screenPixels nx ny = [ (x, y)
 shapes :: [Shape]
 shapes = [ Sphere { center = fromXYZ (0, 0, -1),      radius = 0.5,   material = Lambertian (0.1, 0.2, 0.5) }
          , Sphere { center = fromXYZ (0, -100.5, -1), radius = 100,   material = Lambertian (0.8, 0.8, 0.0) }
-         , Sphere { center = fromXYZ (1, 0, -1),      radius = 0.5,   material = Metal    1 (0.8, 0.6, 0.2) }
+         , Sphere { center = fromXYZ (1, 0, -1),      radius = 0.5,   material = Metal  0.2 (0.8, 0.6, 0.2) }
          , Sphere { center = fromXYZ (-1, 0, -1),     radius = 0.5,   material = Dieletric 1.5 }
          , Sphere { center = fromXYZ (-1, 0, -1),     radius = -0.45, material = Dieletric 1.5 }
          ]
 
+cameraPos = fromXYZ (3, 3, 2)
+-- cameraPos = fromXYZ (0, 0, 0)
+cameraLookAt = fromXYZ (0, 0, -1)
+cameraVup = fromXYZ (0, 1, 0)
+
 cam :: Camera
-cam = getCamera (fromXYZ (0, 0, 0))
+cam = getCamera cameraPos cameraLookAt cameraVup
                 (2, 1) -- Aspect Ratio 2x1
                 200    -- Scale
+                20     -- FOV Degrees
+                1.0    -- aperture
+                (norm $ cameraPos <-> cameraLookAt) -- distance to focus
 
 scene :: Scene
-scene = Scene { antialiasing = 50
+scene = Scene { antialiasing = 5
               , objects      = shapes
               , camera       = cam
               , rng          = mkStdGen 0

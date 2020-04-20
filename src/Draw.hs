@@ -20,10 +20,10 @@ getCircularGradientBackgroundColor highColor lowColor ray = lerp lowColor highCo
         (CVec3 _ yComponent _) = normalize $ direction ray
 
 getBlueGradientBackground :: Ray -> Color
-getBlueGradientBackground ray = (white .^ (1.0 - t)) <+> ((0.5, 0.7, 1.0) .^ t)
+getBlueGradientBackground ray = lerp white (0.5, 0.7, 1.0) t
   where
     (_, y, _) = toXYZ $ direction ray
-    t = (y + 1.0) * 0.5
+    t = normalizeBetween0and1 y
 
 getPinkBackgroundColor = getCircularGradientBackgroundColor (0.6, 0.1, 0.5) white
 
@@ -43,12 +43,9 @@ getColorForRay scene ray tries rng
     (nextRay, materialColor, didReflect, nextRng) = scatter ray closestRecord rng
 
 getSceneColor' :: Scene -> UV -> StdGen -> (Color, StdGen)
-getSceneColor' scene (u, v) = getColorForRay scene ray 0
+getSceneColor' scene uv rng = getColorForRay scene ray 0 nextRng
   where
-    ray = Ray {
-      origin = position $ camera scene,
-      direction = getRay (camera scene) (u, v)
-    }
+    (ray, nextRng) = getRay (camera scene) uv rng
 
 getSceneColor :: Scene -> (Integer, Integer) -> ColorInteger
 getSceneColor scene (x, y) = normalizeColor $ toXYZ averageColor

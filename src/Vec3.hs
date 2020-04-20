@@ -20,6 +20,15 @@ randomPointInSphere gen
     (y, genZ) = randomR (-1, 1) genY
     (z, nextGen) = randomR (-1, 1) genZ
 
+randomPointInDisk :: StdGen -> (CVec3, StdGen)
+randomPointInDisk gen
+  | norm vec < 1.0 = (vec, nextGen)
+  | otherwise = randomPointInDisk nextGen
+  where
+    vec = fromXYZ (x, y, 0.0)
+    (x, genY) = randomR (-1, 1) gen
+    (y, nextGen) = randomR (-1, 1) genY
+
 reflect :: CVec3 -> CVec3 -> CVec3
 reflect view normal = view <-> (n .^ (2 * (n .* view)))
   where
