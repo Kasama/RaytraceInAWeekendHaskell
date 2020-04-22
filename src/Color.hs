@@ -1,5 +1,7 @@
 module Color where
 
+import System.Random
+
 -- Color from 0 to 255
 type ColorInteger = (Integer, Integer, Integer)
 
@@ -29,6 +31,14 @@ clamp mn mx = max mn . min mx
 
 normalizeBetween0and1 :: Double -> Double
 normalizeBetween0and1 n = clamp 0 1 $ 0.5 * (n + 1)
+
+randomColor :: StdGen -> (Color, StdGen)
+randomColor gen = (color, nextGen)
+  where
+    color = (x, y, z)
+    (x, genY) = randomR (0, 1) gen
+    (y, genZ) = randomR (0, 1) genY
+    (z, nextGen) = randomR (0, 1) genZ
 
 -- Default Colors
 white = (1, 1, 1) :: Color

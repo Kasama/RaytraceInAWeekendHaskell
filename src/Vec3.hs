@@ -10,15 +10,20 @@ vmap :: Vec3 a => (Double -> Double) -> a -> a
 vmap f v = fromXYZ (f x, f y, f z)
   where (x, y, z) = toXYZ v
 
-randomPointInSphere :: StdGen -> (CVec3, StdGen)
-randomPointInSphere gen
-  | norm vec < 1.0 = (vec, nextGen)
-  | otherwise = randomPointInSphere nextGen
+randomVec :: StdGen -> (CVec3, StdGen)
+randomVec gen = (vec, nextGen)
   where
     vec = fromXYZ (x, y, z)
     (x, genY) = randomR (-1, 1) gen
     (y, genZ) = randomR (-1, 1) genY
     (z, nextGen) = randomR (-1, 1) genZ
+
+randomPointInSphere :: StdGen -> (CVec3, StdGen)
+randomPointInSphere gen
+  | norm vec < 1.0 = (vec, nextGen)
+  | otherwise = randomPointInSphere nextGen
+  where
+    (vec, nextGen) = randomVec gen
 
 randomPointInDisk :: StdGen -> (CVec3, StdGen)
 randomPointInDisk gen
