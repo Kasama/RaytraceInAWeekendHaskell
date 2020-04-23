@@ -32,7 +32,7 @@ getBackgroundColor = getBlueGradientBackground
 
 getColorForRay :: Scene -> Ray -> Integer -> StdGen -> (Color, StdGen)
 getColorForRay scene ray tries rng
-  | tries > 50 = (black, rng)
+  | tries > 50 = (red, rng)
   | anyHits    = (nextColor `mult` materialColor, nrng)
   | otherwise  = (getBackgroundColor ray, rng)
   where
@@ -45,7 +45,8 @@ getColorForRay scene ray tries rng
 getSceneColor' :: Scene -> UV -> StdGen -> (Color, StdGen)
 getSceneColor' scene uv rng = getColorForRay scene ray 0 nextRng
   where
-    (ray, nextRng) = getRay (camera scene) uv rng
+    cam = camera scene
+    (ray, nextRng) = getRay cam cam uv rng
 
 getSceneColor :: Scene -> (Integer, Integer) -> ColorInteger
 getSceneColor scene (x, y) = normalizeColor $ toXYZ averageColor

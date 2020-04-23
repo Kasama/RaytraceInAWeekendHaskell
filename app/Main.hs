@@ -37,14 +37,15 @@ cameraVup = fromXYZ (0, 1, 0)
 
 cam :: Camera
 cam = getCamera cameraPos cameraLookAt cameraVup
-                (2, 1) -- Aspect Ratio 2x1
-                200    -- Scale
+                (16, 9) -- Aspect Ratio 2x1
+                160    -- Scale
                 20     -- FOV Degrees
                 0.1    -- aperture
                 10     -- distance to focus
+                Perspective
 
 scene :: Scene
-scene = Scene { antialiasing = 5
+scene = Scene { antialiasing = 50
               , objects      = shapes
               , camera       = cam
               , rng          = mkStdGen 0
@@ -80,7 +81,7 @@ randomSphere (a, b) rng = Sphere { center = center
 
 
 randomScene :: Int -> Scene
-randomScene rngSeed = Scene { antialiasing = 10
+randomScene rngSeed = Scene { antialiasing = 1
                             , objects      = defaultSpheres ++ randomSpheres
                             , camera       = cam
                             , rng          = mkStdGen 0

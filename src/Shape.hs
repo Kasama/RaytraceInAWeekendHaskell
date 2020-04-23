@@ -18,6 +18,7 @@ data Material
   = Lambertian Color
   | Metal Double Color
   | Dieletric Double
+  | Normal
   deriving (Show)
 
 schlick :: Double -> Double -> Double
@@ -61,6 +62,10 @@ scatter ray hitRecord rng = case material $ shape hitRecord of
       nextRay = Ray { origin = interception hitRecord
                     , direction = if performReflection then reflectedRay else refractedRay
                     }
+  Normal -> (orr, color, True, rng)
+    where
+      orr = Ray (fromXYZ (0,0,0)) (fromXYZ (0,0,0))
+      color = toXYZ $ vmap (1 +) (normal hitRecord) .^ 0.5
 
 data HitRecord = HitRecord { t :: Double
                            , normal :: CVec3
