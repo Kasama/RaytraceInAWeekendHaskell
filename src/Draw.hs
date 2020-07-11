@@ -8,6 +8,7 @@ import Camera
 import Color
 import System.Random
 import Text.Printf
+import Data.Maybe
 import Data.List (minimumBy)
 import Data.Vec3 hiding (origin, zipWith)
 
@@ -32,15 +33,15 @@ getBackgroundColor = getBlueGradientBackground
 
 getColorForRay :: Scene -> Ray -> Integer -> StdGen -> (Color, StdGen)
 getColorForRay scene ray tries rng
-  | tries > 50 = (red, rng)
+  | tries > 50 = (black, rng)
   | anyHits    = (nextColor `mult` materialColor, nrng)
   | otherwise  = (getBackgroundColor ray, rng)
   where
     (nextColor, nrng) = getColorForRay scene nextRay (tries + 1) nextRng
-    hitRecords = filter didHit $ map (\o -> hit o ray 0.0001 inf) $ objects scene
-    anyHits = any didHit hitRecords
+    hitRecords = mapMaybe (\o -> hit o ray 0.0001 inf) $ objects scene
+    anyHits = not . null $ hitRecords
     closestRecord = minimum hitRecords
-    (nextRay, materialColor, didReflect, nextRng) = scatter ray closestRecord rng
+    (nextRay, materialColor, nextRng) = scatter ray closestRecord rng
 
 getSceneColor' :: Scene -> UV -> StdGen -> (Color, StdGen)
 getSceneColor' scene uv rng = getColorForRay scene ray 0 nextRng
