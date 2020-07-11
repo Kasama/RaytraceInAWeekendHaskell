@@ -38,7 +38,8 @@ cameraVup = fromXYZ (0, 1, 0)
 cam :: Camera
 cam = getCamera cameraPos cameraLookAt cameraVup
                 (16, 9) -- Aspect Ratio 2x1
-                160    -- Scale
+                -- 160    -- Scale
+                20     -- Scale
                 20     -- FOV Degrees
                 0.1    -- aperture
                 10     -- distance to focus

@@ -4,4 +4,4 @@ compile:
 	stack build
 
 run: src/ app/
-	stack run > ./image.ppm
+	stack run > ./out/image.ppm
