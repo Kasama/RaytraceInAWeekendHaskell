@@ -5,12 +5,19 @@ import System.Random
 import Shape
 import Camera
 
-data Scene = Scene { antialiasing :: Integer
-                   , objects :: [Shape]
-                   , camera :: Camera
-                   , rng :: StdGen
-                   }
+-- | Data structure representing a 3D scene.
+data Scene = Scene {
+  -- | The number of samples to take when rendering an image with antialiasing.
+  antialiasing :: Integer,
+  -- | The objects that make up the scene.
+  objects :: [Shape],
+  -- | The camera used to view the scene.
+  camera :: Camera,
+  -- | The random number generator used to generate random numbers.
+  rng :: StdGen
+}
 
+-- | Set the random number generator used in the given scene.
 setRng :: Scene -> Int -> Scene
 setRng s rngSeed = Scene
                      (antialiasing s)

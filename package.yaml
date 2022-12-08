@@ -25,6 +25,7 @@ dependencies:
 - time
 - random
 - parallel
+- mtl
 
 library:
   source-dirs: src
